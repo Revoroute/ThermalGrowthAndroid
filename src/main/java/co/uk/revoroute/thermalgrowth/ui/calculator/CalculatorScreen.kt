@@ -1,6 +1,9 @@
 package co.uk.revoroute.thermalgrowth.ui.calculator
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -9,8 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import co.uk.revoroute.thermalgrowth.ui.settings.SettingsViewModel
 import co.uk.revoroute.thermalgrowth.model.Material
 
@@ -24,6 +30,7 @@ fun CalculatorScreen(
     val measuredSize by viewModel.measuredSize.collectAsState()
     val measuredTemp by viewModel.measuredTemp.collectAsState()
     val selectedMaterial by viewModel.selectedMaterial.collectAsState()
+    val calculationResult by viewModel.calculationResult.collectAsState()
     val showResultSheet by viewModel.showResultSheet.collectAsState()
 
     var showMaterialSheet by remember { mutableStateOf(false) }
@@ -32,7 +39,7 @@ fun CalculatorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Thermal Growth") },
+                title = { Text("Thermal Growth", fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
@@ -46,7 +53,6 @@ fun CalculatorScreen(
             )
         },
         bottomBar = {
-            // Placeholder for AdMob banner component
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -63,9 +69,8 @@ fun CalculatorScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // --- Measured size input ---
             OutlinedTextField(
                 value = measuredSize,
                 onValueChange = { viewModel.onMeasuredSizeChanged(it) },
@@ -75,123 +80,136 @@ fun CalculatorScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // --- Material picker ---
-            Button(
-                onClick = { showMaterialSheet = true },
-                modifier = Modifier.fillMaxWidth()
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showMaterialSheet = true }
+                    .padding(vertical = 4.dp)
             ) {
-                Text(selectedMaterial?.name ?: "Select Material")
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Material", color = MaterialTheme.colorScheme.onSurface)
+                    Text(
+                        selectedMaterial?.name ?: "Select",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
-            // --- Temperature input/picker ---
-            Button(
-                onClick = { showTempSheet = true },
-                modifier = Modifier.fillMaxWidth()
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showTempSheet = true }
+                    .padding(vertical = 4.dp)
             ) {
-                Text("Temperature (°C): $measuredTemp")
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Temperature (°C)", color = MaterialTheme.colorScheme.onSurface)
+                    Text(
+                        measuredTemp.ifBlank { "Select" },
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
-            // --- Calculate button ---
             Button(
                 onClick = { viewModel.calculate() },
                 enabled = viewModel.isCalculateEnabled(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Calculate")
+                Text("Calculate", fontSize = 18.sp)
+            }
+
+            if (calculationResult != null) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    tonalElevation = 4.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            text = "Corrected Size",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = String.format("%.5f mm", calculationResult!!.correctedSize),
+                            fontSize = 28.sp,
+                            fontFamily = FontFamily.Monospace,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Expansion: ${String.format("%.5f", calculationResult!!.expansionAmount)} mm",
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = calculationResult!!.breakdown,
+                            fontSize = 13.sp,
+                            fontFamily = FontFamily.Monospace,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                }
             }
         }
     }
 
-    // --- SHEETS ---
-
     if (showMaterialSheet) {
         MaterialPickerSheet(
-            materials = viewModel.materials.collectAsState().value,
-            onSelect = { material ->
-                viewModel.onMaterialSelected(material)
+            viewModel = viewModel,
+            onDismiss = { showMaterialSheet = false },
+            onSelect = {
+                viewModel.onMaterialSelected(it)
                 showMaterialSheet = false
-            },
-            onDismiss = { showMaterialSheet = false }
+            }
         )
     }
 
     if (showTempSheet) {
-        TempPickerSheet(
-            onSelect = { temp ->
-                viewModel.onMeasuredTempChanged(temp.toString())
-                showTempSheet = false
-            },
-            onDismiss = { showTempSheet = false }
-        )
+        ModalBottomSheet(onDismissRequest = { showTempSheet = false }) {
+            Column(Modifier.padding(16.dp)) {
+                (0..600).forEach { temp ->
+                    Text(
+                        text = "$temp°C",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                            .clickable {
+                                viewModel.onMeasuredTempChanged(temp.toString())
+                                showTempSheet = false
+                            }
+                    )
+                }
+            }
+        }
     }
 
     if (showResultSheet) {
-        ResultsScreen(
-            viewModel = viewModel,
-            onDismiss = { viewModel.dismissResultSheet() }
-        )
-    }
-}
-
-/* ------------------------------------------------------------
-   TEMPORARY COMPOSABLES so this file compiles cleanly.
-   These will be replaced during 4.3, 4.4, and 4.5.
-------------------------------------------------------------- */
-
-@Composable
-fun MaterialPickerSheet(
-    materials: List<Material>,
-    onSelect: (Material) -> Unit,
-    onDismiss: () -> Unit
-) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(Modifier.padding(16.dp)) {
-            materials.forEach {
-                Text(
-                    text = it.name,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                        .wrapContentHeight()
-                        .clickable {
-                            onSelect(it)
-                        }
-                )
+        ModalBottomSheet(onDismissRequest = { viewModel.dismissResultSheet() }) {
+            val result = calculationResult ?: return@ModalBottomSheet
+            Column(Modifier.padding(20.dp)) {
+                Text("Corrected: ${result.correctedSize}")
+                Text("Expansion: ${result.expansionAmount}")
+                Text(result.breakdown)
             }
-        }
-    }
-}
-
-@Composable
-fun TempPickerSheet(
-    onSelect: (Int) -> Unit,
-    onDismiss: () -> Unit
-) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(Modifier.padding(16.dp)) {
-            (0..100).forEach { temp ->
-                Text(
-                    text = "$temp°C",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                        .clickable { onSelect(temp) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ResultsScreen(
-    viewModel: CalculatorViewModel,
-    onDismiss: () -> Unit
-) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(Modifier.padding(16.dp)) {
-            Text("Corrected: ...")
-            Text("Expansion: ...")
-            Text("Formula: ...")
         }
     }
 }
