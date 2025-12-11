@@ -33,10 +33,6 @@ class CalculatorViewModel(
     private val _calculationResult = MutableStateFlow<CalculationResult?>(null)
     val calculationResult: StateFlow<CalculationResult?> = _calculationResult
 
-    // Sheet visibility
-    private val _showResultSheet = MutableStateFlow(false)
-    val showResultSheet: StateFlow<Boolean> = _showResultSheet
-
     // For rating trigger later
     private val _calculationCount = MutableStateFlow(0)
     val calculationCount: StateFlow<Int> = _calculationCount
@@ -55,45 +51,33 @@ class CalculatorViewModel(
     // User input handlers
     fun onMeasuredSizeChanged(value: String) {
         _measuredSize.value = value
+        updateCalculation()
     }
 
     fun onMeasuredTempChanged(value: String) {
         _measuredTemp.value = value
+        updateCalculation()
     }
 
     fun onMaterialSelected(material: Material) {
         _selectedMaterial.value = material
+        updateCalculation()
     }
 
-    // Main calculation
-    fun calculate() {
+    private fun updateCalculation() {
         val size = measuredSize.value.toDoubleOrNull()
         val temp = measuredTemp.value.toDoubleOrNull()
         val material = selectedMaterial.value
 
         if (size != null && temp != null && material != null) {
-            val result = CalculationEngine.calculateCorrectedSize(
+            _calculationResult.value = CalculationEngine.calculateCorrectedSize(
                 measuredSize = size,
                 materialAlpha = material.alpha,
                 measuredTemp = temp
             )
-
-            _calculationResult.value = result
-            _showResultSheet.value = true
-
-            // Increase count for rating logic
             _calculationCount.value += 1
+        } else {
+            _calculationResult.value = null
         }
-    }
-
-    fun dismissResultSheet() {
-        _showResultSheet.value = false
-    }
-
-    // Enable button when valid
-    fun isCalculateEnabled(): Boolean {
-        return measuredSize.value.toDoubleOrNull() != null &&
-                measuredTemp.value.toDoubleOrNull() != null &&
-                selectedMaterial.value != null
     }
 }

@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.uk.revoroute.thermalgrowth.ui.settings.SettingsViewModel
 import co.uk.revoroute.thermalgrowth.model.Material
+import co.uk.revoroute.thermalgrowth.ui.results.ResultCard
+import co.uk.revoroute.thermalgrowth.ui.materials.MaterialPickerSheet
+import co.uk.revoroute.thermalgrowth.ui.materials.TempPickerSheet
 
 @Composable
 fun CalculatorScreen(
@@ -31,7 +34,6 @@ fun CalculatorScreen(
     val measuredTemp by viewModel.measuredTemp.collectAsState()
     val selectedMaterial by viewModel.selectedMaterial.collectAsState()
     val calculationResult by viewModel.calculationResult.collectAsState()
-    val showResultSheet by viewModel.showResultSheet.collectAsState()
 
     var showMaterialSheet by remember { mutableStateOf(false) }
     var showTempSheet by remember { mutableStateOf(false) }
@@ -126,48 +128,18 @@ fun CalculatorScreen(
                 }
             }
 
-            Button(
-                onClick = { viewModel.calculate() },
-                enabled = viewModel.isCalculateEnabled(),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Calculate", fontSize = 18.sp)
-            }
-
-            if (calculationResult != null) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    tonalElevation = 4.dp,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text(
-                            text = "Corrected Size",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = String.format("%.5f mm", calculationResult!!.correctedSize),
-                            fontSize = 28.sp,
-                            fontFamily = FontFamily.Monospace,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Expansion: ${String.format("%.5f", calculationResult!!.expansionAmount)} mm",
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = calculationResult!!.breakdown,
-                            fontSize = 13.sp,
-                            fontFamily = FontFamily.Monospace,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
-                }
+            val result = calculationResult
+            if (result != null) {
+                ResultCard(
+                    result = result,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            } else {
+                Text(
+                    text = "Enter a size to calculate",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
         }
     }
@@ -176,40 +148,21 @@ fun CalculatorScreen(
         MaterialPickerSheet(
             viewModel = viewModel,
             onDismiss = { showMaterialSheet = false },
-            onSelect = {
-                viewModel.onMaterialSelected(it)
+            onSelect = { material ->
+                viewModel.onMaterialSelected(material)
                 showMaterialSheet = false
             }
         )
     }
 
     if (showTempSheet) {
-        ModalBottomSheet(onDismissRequest = { showTempSheet = false }) {
-            Column(Modifier.padding(16.dp)) {
-                (0..600).forEach { temp ->
-                    Text(
-                        text = "$temp°C",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp)
-                            .clickable {
-                                viewModel.onMeasuredTempChanged(temp.toString())
-                                showTempSheet = false
-                            }
-                    )
-                }
-            }
-        }
-    }
-
-    if (showResultSheet) {
-        ModalBottomSheet(onDismissRequest = { viewModel.dismissResultSheet() }) {
-            val result = calculationResult ?: return@ModalBottomSheet
-            Column(Modifier.padding(20.dp)) {
-                Text("Corrected: ${result.correctedSize}")
-                Text("Expansion: ${result.expansionAmount}")
-                Text(result.breakdown)
-            }
-        }
+        TempPickerSheet(
+            startTemp = measuredTemp.toIntOrNull() ?: 20,
+            onSelect = { temp ->
+                viewModel.onMeasuredTempChanged(temp.toString())
+                showTempSheet = false
+            },
+            onDismiss = { showTempSheet = false }
+        )
     }
 }

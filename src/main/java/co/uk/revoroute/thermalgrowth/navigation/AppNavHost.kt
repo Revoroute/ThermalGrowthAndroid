@@ -43,7 +43,7 @@ fun AppNavHost(
 
         composable(NavigationRoute.Info.route) {
             InfoScreen(
-                settingsViewModel = settingsViewModel,
+                viewModel = calculatorViewModel,
                 onBack = { navController.popBackStack() }
             )
         }

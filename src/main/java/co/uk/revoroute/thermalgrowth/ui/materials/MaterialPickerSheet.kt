@@ -15,6 +15,11 @@ import androidx.compose.ui.unit.sp
 import co.uk.revoroute.thermalgrowth.model.Material
 import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorViewModel
 
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Column
+
 // iOS category order
 private val iosCategoryOrder = listOf(
     "Aluminium Alloys",
@@ -28,6 +33,7 @@ private val iosCategoryOrder = listOf(
     "Specialty Materials"
 )
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialPickerSheet(
     viewModel: CalculatorViewModel,

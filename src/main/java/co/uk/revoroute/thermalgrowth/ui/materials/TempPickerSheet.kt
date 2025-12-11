@@ -20,6 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+@OptIn(
+    androidx.compose.foundation.ExperimentalFoundationApi::class,
+    androidx.compose.material3.ExperimentalMaterial3Api::class
+)
 @Composable
 fun TempPickerSheet(
     onSelect: (Int) -> Unit,
@@ -78,8 +82,8 @@ fun TempPickerSheet(
                     // Selected?
                     val isSelected =
                         listState.firstVisibleItemIndex == index ||
-                                listState.firstVisibleItemScrollOffset in 0..20 &&
-                                listState.firstVisibleItemIndex + 1 == index
+                                (listState.firstVisibleItemScrollOffset in 0..20 &&
+                                listState.firstVisibleItemIndex + 1 == index)
 
                     Text(
                         text = "$temp°C",
