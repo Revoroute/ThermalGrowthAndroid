@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,7 +23,9 @@ import co.uk.revoroute.thermalgrowth.model.Material
 import co.uk.revoroute.thermalgrowth.ui.results.ResultCard
 import co.uk.revoroute.thermalgrowth.ui.materials.MaterialPickerSheet
 import co.uk.revoroute.thermalgrowth.ui.materials.TempPickerSheet
+import co.uk.revoroute.thermalgrowth.ui.components.AdBanner
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorScreen(
     viewModel: CalculatorViewModel,
@@ -55,14 +58,12 @@ fun CalculatorScreen(
             )
         },
         bottomBar = {
-            Box(
+            AdBanner(
+                adUnitId = "ca-app-pub-3940256099942544/6300978111",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Ad Banner Placeholder")
-            }
+                    .height(50.dp)
+            )
         }
     ) { padding ->
 

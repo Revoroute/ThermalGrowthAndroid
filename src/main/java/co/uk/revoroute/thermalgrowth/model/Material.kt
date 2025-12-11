@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class Material(
     @SerialName("name") val name: String,
     @SerialName("alpha") val alpha: Double,
-    @SerialName("category") val category: String
+    @SerialName("category") val category: String,
 )

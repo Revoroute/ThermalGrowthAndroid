@@ -9,7 +9,7 @@ import androidx.navigation.compose.composable
 import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorScreen
 import co.uk.revoroute.thermalgrowth.ui.settings.SettingsScreen
 import co.uk.revoroute.thermalgrowth.ui.info.InfoScreen
-import co.uk.revoroute.thermalgrowth.viewmodel.CalculatorViewModel
+import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorViewModel
 import co.uk.revoroute.thermalgrowth.ui.settings.SettingsViewModel
 
 @Composable

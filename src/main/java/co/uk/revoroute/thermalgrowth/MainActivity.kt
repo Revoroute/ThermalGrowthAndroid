@@ -10,6 +10,7 @@ import co.uk.revoroute.thermalgrowth.navigation.AppNavHost
 import co.uk.revoroute.thermalgrowth.ui.splash.SplashOverlay
 import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorViewModel
 import co.uk.revoroute.thermalgrowth.ui.settings.SettingsViewModel
+import co.uk.revoroute.thermalgrowth.data.MaterialRepository
 
 class MainActivity : ComponentActivity() {
 
@@ -17,7 +18,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val settingsViewModel = SettingsViewModel(applicationContext)
-        val calculatorViewModel = CalculatorViewModel(settingsViewModel)
+        val materialRepository = MaterialRepository(applicationContext)
+        val calculatorViewModel = CalculatorViewModel(materialRepository)
 
         setContent {
             MaterialTheme {

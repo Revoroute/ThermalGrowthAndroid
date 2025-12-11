@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +42,7 @@ fun TGButton(
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {
-        androidx.compose.material3.ClickableText(
+        ClickableText(
             text = androidx.compose.ui.text.AnnotatedString(text),
             onClick = { onClick() },
             style = androidx.compose.ui.text.TextStyle(

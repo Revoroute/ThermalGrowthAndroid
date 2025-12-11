@@ -3,6 +3,7 @@ package co.uk.revoroute.thermalgrowth.ui.info
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import co.uk.revoroute.thermalgrowth.model.Material
 import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InfoScreen(
     viewModel: CalculatorViewModel,
@@ -78,6 +80,7 @@ fun InfoScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MaterialInfoRow(material: Material) {
     Column(
