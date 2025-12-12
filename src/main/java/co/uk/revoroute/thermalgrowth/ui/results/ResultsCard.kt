@@ -6,8 +6,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.uk.revoroute.thermalgrowth.model.CalculationResult
@@ -23,14 +25,38 @@ fun ResultCard(
         shadowElevation = 6.dp,
         modifier = modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            // Offset label
+            Text(
+                text = "OFFSET",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center
+            )
+
+            // Offset value
+            Text(
+                text = String.format("%.5f mm", result.expansionAmount),
+                fontSize = 32.sp,
+                fontFamily = FontFamily.Monospace,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(top = 4.dp, bottom = 16.dp)
+            )
 
             // Label
             Text(
-                text = "CORRECTED SIZE",
+                text = "TARGET SIZE",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center
             )
 
             // Corrected size value
@@ -39,32 +65,9 @@ fun ResultCard(
                 fontSize = 32.sp,
                 fontFamily = FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
-            )
-
-            // Expansion label
-            Text(
-                text = "EXPANSION",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            // Expansion amount
-            Text(
-                text = String.format("%.5f mm", result.expansionAmount),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
-            )
-
-            // Formula breakdown
-            Text(
-                text = result.breakdown,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(top = 4.dp, bottom = 16.dp)
             )
         }
     }

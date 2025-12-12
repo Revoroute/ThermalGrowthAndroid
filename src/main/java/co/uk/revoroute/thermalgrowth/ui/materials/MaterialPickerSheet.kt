@@ -3,6 +3,7 @@ package co.uk.revoroute.thermalgrowth.ui.materials
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -27,6 +28,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.padding
 
 // iOS category order
 private val iosCategoryOrder = listOf(
@@ -55,20 +63,40 @@ fun MaterialPickerSheet(
         materials.filter { it.category == category }
     }.filterValues { it.isNotEmpty() }
 
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+
     ModalBottomSheet(
+        sheetState = sheetState,
         onDismissRequest = onDismiss,
         tonalElevation = 3.dp
     ) {
-        Column(
+        Scaffold(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 500.dp)
-        ) {
+                .heightIn(max = 500.dp),
+            contentWindowInsets = WindowInsets(0),
+            bottomBar = {
+                Button(
+                    onClick = {
+                        selected?.let { onSelect(it) }
+                        onDismiss()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Done", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        ) { innerPadding ->
 
             LazyColumn(
                 modifier = Modifier
-                    .weight(1f)
                     .fillMaxWidth()
+                    .padding(innerPadding)
             ) {
                 grouped.forEach { (category, materialList) ->
 
@@ -78,8 +106,10 @@ fun MaterialPickerSheet(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center,
                             modifier = Modifier
-                                .padding(start = 20.dp, top = 16.dp, bottom = 6.dp)
+                                .fillMaxWidth()
+                                .padding(top = 16.dp, bottom = 6.dp)
                         )
                     }
 
@@ -94,10 +124,12 @@ fun MaterialPickerSheet(
                                     selected = material
                                 }
                                 .padding(horizontal = 20.dp, vertical = 14.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
                                 text = material.name,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
                                 fontSize = 17.sp,
                                 color = if (isSelected)
                                     MaterialTheme.colorScheme.primary
@@ -107,19 +139,6 @@ fun MaterialPickerSheet(
                         }
                     }
                 }
-            }
-
-            Button(
-                onClick = {
-                    selected?.let { onSelect(it) }
-                    onDismiss()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Done", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }

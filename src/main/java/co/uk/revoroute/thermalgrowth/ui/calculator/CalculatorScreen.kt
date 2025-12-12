@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
@@ -16,8 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalFocusManager
 import co.uk.revoroute.thermalgrowth.ui.settings.SettingsViewModel
 import co.uk.revoroute.thermalgrowth.model.Material
 import co.uk.revoroute.thermalgrowth.ui.results.ResultCard
@@ -38,13 +42,26 @@ fun CalculatorScreen(
     val selectedMaterial by viewModel.selectedMaterial.collectAsState()
     val calculationResult by viewModel.calculationResult.collectAsState()
 
+    val focusManager = LocalFocusManager.current
+
     var showMaterialSheet by remember { mutableStateOf(false) }
     var showTempSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Thermal Growth", fontSize = 20.sp) },
+                title = {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Thermal Growth",
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
@@ -74,12 +91,38 @@ fun CalculatorScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            Text(
+                text = "Target size at reference temperature",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
             OutlinedTextField(
                 value = measuredSize,
                 onValueChange = { viewModel.onMeasuredSizeChanged(it) },
-                label = { Text("Measured Size (mm)") },
+                placeholder = {
+                    Text(
+                        text = "Enter Size (mm)",
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                    }
+                ),
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 22.sp,
+                    textAlign = TextAlign.Center
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -96,13 +139,20 @@ fun CalculatorScreen(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("Material", color = MaterialTheme.colorScheme.onSurface)
-                    Text(
-                        selectedMaterial?.name ?: "Select",
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Material",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = selectedMaterial?.name ?: "Select",
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
 
@@ -119,13 +169,20 @@ fun CalculatorScreen(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("Temperature (°C)", color = MaterialTheme.colorScheme.onSurface)
-                    Text(
-                        measuredTemp.ifBlank { "Select" },
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Temperature (°C)",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = measuredTemp.ifBlank { "Select" },
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
 
@@ -139,7 +196,10 @@ fun CalculatorScreen(
                 Text(
                     text = "Enter a size to calculate",
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(top = 8.dp)
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
                 )
             }
         }
