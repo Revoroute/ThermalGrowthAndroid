@@ -19,16 +19,21 @@ import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 // iOS category order
 private val iosCategoryOrder = listOf(
     "Aluminium Alloys",
     "Steels",
     "Stainless Steels",
-    "Tool Steels",
-    "Titanium Alloys",
-    "Copper Alloys",
-    "Brass Alloys",
+    "Non‑Ferrous Metals",
     "Polymers",
     "Specialty Materials"
 )
@@ -43,6 +48,8 @@ fun MaterialPickerSheet(
     val materials = viewModel.materials.collectAsState().value
     val selectedMaterial = viewModel.selectedMaterial.collectAsState().value
 
+    var selected by remember(selectedMaterial) { mutableStateOf(selectedMaterial) }
+
     // Group materials by category in iOS order
     val grouped = iosCategoryOrder.associateWith { category ->
         materials.filter { it.category == category }
@@ -55,48 +62,65 @@ fun MaterialPickerSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp)
+                .heightIn(max = 500.dp)
         ) {
-            grouped.forEach { (category, materialList) ->
 
-                // Category header
-                Text(
-                    text = category.uppercase(),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier
-                        .padding(start = 20.dp, top = 16.dp, bottom = 6.dp)
-                )
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                grouped.forEach { (category, materialList) ->
 
-                // Material rows
-                materialList.forEach { material ->
-
-                    val isSelected = selectedMaterial?.name == material.name
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onSelect(material)
-                                onDismiss()
-                            }
-                            .padding(horizontal = 20.dp, vertical = 14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+                    item {
                         Text(
-                            text = material.name,
-                            fontSize = 17.sp,
-                            color = if (isSelected)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurface
+                            text = category.uppercase(),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier
+                                .padding(start = 20.dp, top = 16.dp, bottom = 6.dp)
                         )
+                    }
+
+                    items(materialList) { material ->
+
+                        val isSelected = selected?.name == material.name
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selected = material
+                                }
+                                .padding(horizontal = 20.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = material.name,
+                                fontSize = 17.sp,
+                                color = if (isSelected)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = {
+                    selected?.let { onSelect(it) }
+                    onDismiss()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Done", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }

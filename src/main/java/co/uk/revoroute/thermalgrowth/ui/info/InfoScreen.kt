@@ -30,6 +30,10 @@ fun InfoScreen(
 ) {
     val materials = viewModel.materials.collectAsState().value
 
+    val groupedMaterials = materials
+        .groupBy { it.category }
+        .toSortedMap()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -62,15 +66,33 @@ fun InfoScreen(
                 )
 
                 Text(
-                    text = "Values below are expressed in ×10⁻⁶ per °C, matching standard engineering tables.",
+                    text = "This calculator corrects a measured size at temperature T back to your selected reference temperature using:\n\n" +
+                           "Lᵣ = Lₜ × [1 + α × (T − R)]\n\n" +
+                           "Where Lᵣ is the corrected length at the reference temperature R (set in Settings), " +
+                           "Lₜ is the measured length, α is the material’s thermal expansion coefficient, " +
+                           "and T is the measurement temperature.",
                     fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(top = 4.dp)
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
 
-            items(materials) { material ->
-                MaterialInfoRow(material = material)
+            groupedMaterials.forEach { (category, items) ->
+
+                item {
+                    Text(
+                        text = category,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .padding(top = 12.dp, bottom = 4.dp)
+                    )
+                }
+
+                items(items) { material ->
+                    MaterialInfoRow(material = material)
+                }
             }
 
             item {
@@ -80,25 +102,28 @@ fun InfoScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MaterialInfoRow(material: Material) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = material.name,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
         )
 
         Text(
-            text = String.format("%.2f ×10⁻⁶ /°C", material.alpha),
-            fontSize = 15.sp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+            text = String.format("%.1f", material.alpha),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }

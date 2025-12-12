@@ -1,115 +1,91 @@
 package co.uk.revoroute.thermalgrowth.ui.materials
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Button
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
 
 @OptIn(
-    androidx.compose.foundation.ExperimentalFoundationApi::class,
     androidx.compose.material3.ExperimentalMaterial3Api::class
 )
 @Composable
 fun TempPickerSheet(
+    startTemp: Int = 20,
     onSelect: (Int) -> Unit,
-    onDismiss: () -> Unit,
-    startTemp: Int = 20 // default like iOS
+    onDismiss: () -> Unit
 ) {
-    val temps = remember { (-150..600).toList() }
-    val initialIndex = temps.indexOf(startTemp).coerceAtLeast(0)
+    val temps = remember { (600 downTo -150).toList() }
+    var selected by remember { mutableStateOf(startTemp) }
 
-    val listState = rememberLazyListState(initialIndex)
-    val fling = rememberSnapFlingBehavior(listState)
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = temps.indexOf(startTemp).coerceAtLeast(0)
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         tonalElevation = 3.dp
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(350.dp)
+                .heightIn(max = 500.dp)
         ) {
 
-            // Highlight bar (iOS style)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-                        shape = MaterialTheme.shapes.medium
-                    )
-            )
-
-            // Temperature wheel
             LazyColumn(
                 state = listState,
-                flingBehavior = fling,
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
             ) {
+                items(temps) { temp ->
 
-                itemsIndexed(temps) { index, temp ->
+                    val isSelected = temp == selected
 
-                    val center = listState.layoutInfo.visibleItemsInfo
-                        .firstOrNull { it.index == index }?.offset ?: 0
-
-                    // Distance from center for fading
-                    val distance = kotlin.math.abs(center)
-                    val fade = when {
-                        distance < 20 -> 1f
-                        distance < 80 -> 0.6f
-                        else -> 0.3f
-                    }
-
-                    // Selected?
-                    val isSelected =
-                        listState.firstVisibleItemIndex == index ||
-                                (listState.firstVisibleItemScrollOffset in 0..20 &&
-                                listState.firstVisibleItemIndex + 1 == index)
-
-                    Text(
-                        text = "$temp°C",
-                        fontSize = if (isSelected) 26.sp else 20.sp,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        fontFamily = FontFamily.Monospace,
-                        color = if (isSelected)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = fade),
+                    Row(
                         modifier = Modifier
-                            .padding(vertical = 10.dp)
-                            .alpha(fade)
-                    )
+                            .fillMaxWidth()
+                            .clickable { selected = temp }
+                            .padding(horizontal = 20.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "$temp°C",
+                            fontSize = 17.sp,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
 
-            // Confirm selection on stop
-            LaunchedEffect(listState.isScrollInProgress) {
-                if (!listState.isScrollInProgress) {
-                    val centerIndex = listState.firstVisibleItemIndex
-                    val selectedTemp = temps.getOrNull(centerIndex)
-                    if (selectedTemp != null) {
-                        onSelect(selectedTemp)
-                    }
-                }
+            Button(
+                onClick = {
+                    onSelect(selected)
+                    onDismiss()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Done", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
