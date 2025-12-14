@@ -95,7 +95,7 @@ fun CalculatorScreen(
         },
         bottomBar = {
             AdBanner(
-                adUnitId = "ca-app-pub-3940256099942544/6300978111",
+                adUnitId = "ca-app-pub-3557221706331893/4654583309",
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
