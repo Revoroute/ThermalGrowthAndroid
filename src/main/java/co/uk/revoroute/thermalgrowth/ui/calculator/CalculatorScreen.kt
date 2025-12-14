@@ -1,6 +1,5 @@
 package co.uk.revoroute.thermalgrowth.ui.calculator
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,26 +13,23 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalFocusManager
-import co.uk.revoroute.thermalgrowth.ui.settings.SettingsViewModel
-import co.uk.revoroute.thermalgrowth.model.Material
+import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
 import co.uk.revoroute.thermalgrowth.ui.results.ResultCard
-import co.uk.revoroute.thermalgrowth.ui.materials.MaterialPickerSheet
-import co.uk.revoroute.thermalgrowth.ui.materials.TempPickerSheet
+import co.uk.revoroute.thermalgrowth.ui.components.MaterialPickerSheet
+import co.uk.revoroute.thermalgrowth.ui.components.TempPickerSheet
 import co.uk.revoroute.thermalgrowth.ui.components.AdBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorScreen(
-    viewModel: CalculatorViewModel,
-    settingsViewModel: SettingsViewModel,
+    viewModel: CalculatorState,
+    settings: AppSettingsStore,
     onOpenSettings: () -> Unit,
     onOpenInfo: () -> Unit
 ) {
@@ -41,6 +37,21 @@ fun CalculatorScreen(
     val measuredTemp by viewModel.measuredTemp.collectAsState()
     val selectedMaterial by viewModel.selectedMaterial.collectAsState()
     val calculationResult by viewModel.calculationResult.collectAsState()
+
+    val unitSystem by settings.unitSystem.collectAsState()
+    val referenceTempC by settings.referenceTempC.collectAsState()
+
+    // Display helper for measured temperature, shows in selected unit but keeps state in Celsius
+    val displayMeasuredTemp = remember(measuredTemp, unitSystem) {
+        val tempC = measuredTemp.toIntOrNull()
+        if (tempC == null) {
+            ""
+        } else if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) {
+            "${(tempC * 9 / 5) + 32}°F"
+        } else {
+            "$tempC°C"
+        }
+    }
 
     val focusManager = LocalFocusManager.current
 
@@ -64,12 +75,20 @@ fun CalculatorScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onOpenSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = onOpenInfo) {
-                        Icon(Icons.Default.Info, contentDescription = "Info")
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Info",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             )
@@ -92,7 +111,7 @@ fun CalculatorScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             Text(
-                text = "Target size at reference temperature",
+                text = "Target size at ${settings.displayReferenceTemperature()} reference",
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
@@ -103,7 +122,7 @@ fun CalculatorScreen(
                 onValueChange = { viewModel.onMeasuredSizeChanged(it) },
                 placeholder = {
                     Text(
-                        text = "Enter Size (mm)",
+                        text = settings.displayInputSizeHint(),
                         fontSize = 18.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
@@ -173,12 +192,12 @@ fun CalculatorScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Temperature (°C)",
+                            text = settings.displayTemperatureLabel(),
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = measuredTemp.ifBlank { "Select" },
+                            text = displayMeasuredTemp.ifBlank { "Select" },
                             color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center
                         )
@@ -190,6 +209,7 @@ fun CalculatorScreen(
             if (result != null) {
                 ResultCard(
                     result = result,
+                    settings = settings,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             } else {
@@ -218,7 +238,8 @@ fun CalculatorScreen(
 
     if (showTempSheet) {
         TempPickerSheet(
-            startTemp = measuredTemp.toIntOrNull() ?: 20,
+            startTemp = measuredTemp.toIntOrNull() ?: referenceTempC,
+            unitSystem = unitSystem,
             onSelect = { temp ->
                 viewModel.onMeasuredTempChanged(temp.toString())
                 showTempSheet = false

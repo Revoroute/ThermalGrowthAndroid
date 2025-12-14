@@ -1,12 +1,44 @@
 package co.uk.revoroute.thermalgrowth.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
-import co.uk.revoroute.thermalgrowth.ui.settings.SettingsViewModel
+import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
+
+// --------------------------------------------------
+// Colors
+// --------------------------------------------------
+
+// Accents
+private val AccentBlue = Color(0xFF007AFF)
+private val AccentOrange = Color(0xFFFF9500)
+private val AccentGreen = Color(0xFF34C759)
+private val AccentRed = Color(0xFFFF3B30)
+private val AccentPurple = Color(0xFFAF52DE)
+
+// Base
+private val AppWhite = Color(0xFFFFFFFF)
+private val AppBlack = Color(0xFF000000)
+
+private val LightText = Color(0xFF1C1C1E)
+private val DarkText = Color(0xFFE5E5EA)
+
+private val LightSurface = Color(0xFFF2F2F7)
+private val DarkSurface = Color(0xFF1C1C1E)
+
+// --------------------------------------------------
+// Typography
+// --------------------------------------------------
+
+private val AppTypography = Typography()
+
+// --------------------------------------------------
+// Color Schemes
+// --------------------------------------------------
 
 private val LightColors = lightColorScheme(
     primary = AccentBlue,
@@ -22,22 +54,34 @@ private val DarkColors = darkColorScheme(
     onPrimary = AppBlack,
     background = AppBlack,
     onBackground = DarkText,
-    surface = DarkCard,
+    surface = DarkSurface,
     onSurface = DarkText
 )
 
+// --------------------------------------------------
+// Theme
+// --------------------------------------------------
+
 @Composable
 fun ThermalGrowthTheme(
-    settingsViewModel: SettingsViewModel,
+    settings: AppSettingsStore,
     content: @Composable () -> Unit
 ) {
-    val theme = settingsViewModel.theme.collectAsState().value
+    val theme = settings.theme.collectAsState().value
+    val accent = settings.accent.collectAsState().value
 
-    val colorScheme = when (theme) {
-        SettingsViewModel.AppTheme.LIGHT -> LightColors
-        SettingsViewModel.AppTheme.DARK -> DarkColors
+    val accentColor = when (accent) {
+        AppSettingsStore.AppAccent.BLUE -> AccentBlue
+        AppSettingsStore.AppAccent.ORANGE -> AccentOrange
+        AppSettingsStore.AppAccent.GREEN -> AccentGreen
+        AppSettingsStore.AppAccent.RED -> AccentRed
+        AppSettingsStore.AppAccent.PURPLE -> AccentPurple
+    }
 
-        SettingsViewModel.AppTheme.HIGH_CONTRAST -> darkColorScheme(
+    val baseScheme = when (theme) {
+        AppSettingsStore.AppTheme.LIGHT -> LightColors
+        AppSettingsStore.AppTheme.DARK -> DarkColors
+        AppSettingsStore.AppTheme.HIGH_CONTRAST -> darkColorScheme(
             primary = Color.Yellow,
             onPrimary = Color.Black,
             background = Color.Black,
@@ -45,17 +89,12 @@ fun ThermalGrowthTheme(
             surface = Color.Black,
             onSurface = Color.White
         )
-
-        SettingsViewModel.AppTheme.SYSTEM -> {
-            // System dark follows your rule: DARK IS PRIMARY
-            DarkColors
-        }
+        AppSettingsStore.AppTheme.SYSTEM -> DarkColors
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = baseScheme.copy(primary = accentColor),
         typography = AppTypography,
-        shapes = AppShapes,
         content = content
     )
 }

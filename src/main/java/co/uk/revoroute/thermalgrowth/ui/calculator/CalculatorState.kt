@@ -2,6 +2,7 @@ package co.uk.revoroute.thermalgrowth.ui.calculator
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
 import co.uk.revoroute.thermalgrowth.data.MaterialRepository
 import co.uk.revoroute.thermalgrowth.model.CalculationEngine
 import co.uk.revoroute.thermalgrowth.model.CalculationResult
@@ -10,8 +11,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class CalculatorViewModel(
-    private val repository: MaterialRepository
+class CalculatorState(
+    private val repository: MaterialRepository,
+    private val settings: AppSettingsStore
 ) : ViewModel() {
 
     // Text field state
@@ -29,26 +31,33 @@ class CalculatorViewModel(
     private val _materials = MutableStateFlow<List<Material>>(emptyList())
     val materials: StateFlow<List<Material>> = _materials
 
-    // Result state
+    // Calculation result
     private val _calculationResult = MutableStateFlow<CalculationResult?>(null)
     val calculationResult: StateFlow<CalculationResult?> = _calculationResult
 
-    // For rating trigger later
-    private val _calculationCount = MutableStateFlow(0)
-    val calculationCount: StateFlow<Int> = _calculationCount
-
     init {
-        // Load materials on startup
         viewModelScope.launch {
             val loaded = repository.loadMaterials()
             _materials.value = loaded
             if (loaded.isNotEmpty()) {
                 _selectedMaterial.value = loaded.first()
+                updateCalculation()
+            }
+        }
+
+        viewModelScope.launch {
+            settings.unitSystem.collect {
+                updateCalculation()
+            }
+        }
+
+        viewModelScope.launch {
+            settings.referenceTempC.collect {
+                updateCalculation()
             }
         }
     }
 
-    // User input handlers
     fun onMeasuredSizeChanged(value: String) {
         _measuredSize.value = value
         updateCalculation()
@@ -65,19 +74,35 @@ class CalculatorViewModel(
     }
 
     private fun updateCalculation() {
-        val size = measuredSize.value.toDoubleOrNull()
-        val temp = measuredTemp.value.toDoubleOrNull()
-        val material = selectedMaterial.value
+        val size = _measuredSize.value.toDoubleOrNull()
+        val tempInput = _measuredTemp.value.toDoubleOrNull()
+        val material = _selectedMaterial.value
 
-        if (size != null && temp != null && material != null) {
-            _calculationResult.value = CalculationEngine.calculateCorrectedSize(
-                measuredSize = size,
-                materialAlpha = material.alpha,
-                measuredTemp = temp
-            )
-            _calculationCount.value += 1
-        } else {
+        if (size == null || tempInput == null || material == null) {
             _calculationResult.value = null
+            return
         }
+
+        // Convert measured temperature to °C using explicit Double-safe logic (no rounding)
+        val measuredTempC = tempInput
+
+        // Convert measured length to mm using settings
+        val measuredSizeMm =
+            if (settings.unitSystem.value == AppSettingsStore.UnitSystem.IMPERIAL) {
+                size * 25.4
+            } else {
+                size
+            }
+        // Reference temperature is always stored internally as °C (Double-safe)
+        val referenceTempC = settings.referenceTempC.value.toDouble()
+
+        _calculationResult.value = CalculationEngine.calculateCorrectedSize(
+            measuredSize = measuredSizeMm,
+            materialAlpha = material.alpha,
+            measuredTemp = measuredTempC,
+            referenceTemp = referenceTempC
+        )
+
+        settings.incrementCalculationCount()
     }
 }

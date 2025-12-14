@@ -1,14 +1,15 @@
-package co.uk.revoroute.thermalgrowth.ui.materials
+package co.uk.revoroute.thermalgrowth.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,16 +28,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TempPickerSheet(
     startTemp: Int = 20,
+    unitSystem: AppSettingsStore.UnitSystem,
     onSelect: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
     val temps = remember { (600 downTo -150).toList() }
     var selected by remember { mutableStateOf(startTemp) }
+
+    val unitLabel =
+        if (unitSystem == AppSettingsStore.UnitSystem.METRIC) "°C" else "°F"
 
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = temps.indexOf(startTemp).coerceAtLeast(0)
@@ -81,15 +87,21 @@ fun TempPickerSheet(
                 items(temps) { temp ->
                     val isSelected = temp == selected
 
-                    androidx.compose.foundation.layout.Row(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { selected = temp }
                             .padding(horizontal = 20.dp, vertical = 14.dp),
                         horizontalArrangement = Arrangement.Center
                     ) {
+                        val displayTemp =
+                            if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL)
+                                (temp * 9 / 5) + 32
+                            else
+                                temp
+
                         Text(
-                            text = "$temp°C",
+                            text = "$displayTemp$unitLabel",
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
                             fontSize = 17.sp,

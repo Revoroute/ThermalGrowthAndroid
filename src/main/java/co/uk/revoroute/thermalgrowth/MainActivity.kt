@@ -3,28 +3,38 @@ package co.uk.revoroute.thermalgrowth
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import co.uk.revoroute.thermalgrowth.navigation.AppNavHost
 import co.uk.revoroute.thermalgrowth.ui.splash.SplashOverlay
-import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorViewModel
-import co.uk.revoroute.thermalgrowth.ui.settings.SettingsViewModel
-import co.uk.revoroute.thermalgrowth.data.MaterialRepository
+import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorState
+import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
+import co.uk.revoroute.thermalgrowth.app.AppSettingsStoreFactory
+import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorStateFactory
+import co.uk.revoroute.thermalgrowth.ui.theme.ThermalGrowthTheme
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val settingsViewModel = SettingsViewModel(applicationContext)
-        val materialRepository = MaterialRepository(applicationContext)
-        val calculatorViewModel = CalculatorViewModel(materialRepository)
-
         setContent {
-            MaterialTheme {
-                var showSplash by remember { mutableStateOf(true) }
 
+            val settings: AppSettingsStore = viewModel(
+                factory = AppSettingsStoreFactory(applicationContext)
+            )
+
+            ThermalGrowthTheme(settings) {
+
+                val calculatorViewModel: CalculatorState = viewModel(
+                    factory = CalculatorStateFactory(
+                        context = applicationContext,
+                        settings = settings
+                    )
+                )
+
+                var showSplash by remember { mutableStateOf(true) }
                 val navController = rememberNavController()
 
                 if (showSplash) {
@@ -32,7 +42,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     AppNavHost(
                         navController = navController,
-                        settingsViewModel = settingsViewModel,
+                        settings = settings,
                         calculatorViewModel = calculatorViewModel
                     )
                 }

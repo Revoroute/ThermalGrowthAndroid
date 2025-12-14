@@ -2,22 +2,21 @@ package co.uk.revoroute.thermalgrowth.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorScreen
 import co.uk.revoroute.thermalgrowth.ui.settings.SettingsScreen
 import co.uk.revoroute.thermalgrowth.ui.info.InfoScreen
-import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorViewModel
-import co.uk.revoroute.thermalgrowth.ui.settings.SettingsViewModel
+import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorState
+import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    settingsViewModel: SettingsViewModel,
-    calculatorViewModel: CalculatorViewModel
+    settings: AppSettingsStore,
+    calculatorViewModel: CalculatorState
 ) {
     NavHost(
         navController = navController,
@@ -28,7 +27,7 @@ fun AppNavHost(
         composable(NavigationRoute.Calculator.route) {
             CalculatorScreen(
                 viewModel = calculatorViewModel,
-                settingsViewModel = settingsViewModel,
+                settings = settings,
                 onOpenSettings = { navController.navigate(NavigationRoute.Settings.route) },
                 onOpenInfo = { navController.navigate(NavigationRoute.Info.route) }
             )
@@ -36,7 +35,7 @@ fun AppNavHost(
 
         composable(NavigationRoute.Settings.route) {
             SettingsScreen(
-                settingsViewModel = settingsViewModel,
+                settings = settings,
                 onBack = { navController.popBackStack() }
             )
         }
@@ -44,6 +43,7 @@ fun AppNavHost(
         composable(NavigationRoute.Info.route) {
             InfoScreen(
                 viewModel = calculatorViewModel,
+                settings = settings,
                 onBack = { navController.popBackStack() }
             )
         }

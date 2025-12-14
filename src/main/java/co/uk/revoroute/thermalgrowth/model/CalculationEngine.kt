@@ -45,9 +45,8 @@ object CalculationEngine {
         corrected: Double
     ): String {
 
-        val df = DecimalFormat("#.#####")  // match iOS formatting
-
-        val alphaFormatted = DecimalFormat("#.######").format(alphaCoefficient)
+        val df = DecimalFormat("0.000000")
+        val alphaFormatted = DecimalFormat("0.0000000").format(alphaCoefficient)
 
         return "${df.format(measuredSize)} × [1 + $alphaFormatted × (${df.format(tempMeasured)} − ${df.format(tempRef)})] = ${df.format(corrected)}"
     }

@@ -1,25 +1,21 @@
-package co.uk.revoroute.thermalgrowth.ui.materials
+package co.uk.revoroute.thermalgrowth.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.uk.revoroute.thermalgrowth.model.Material
-import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorViewModel
+import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorState
 
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -32,9 +28,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Scaffold
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 
 // iOS category order
 private val iosCategoryOrder = listOf(
@@ -46,10 +41,10 @@ private val iosCategoryOrder = listOf(
     "Specialty Materials"
 )
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialPickerSheet(
-    viewModel: CalculatorViewModel,
+    viewModel: CalculatorState,
     onDismiss: () -> Unit,
     onSelect: (Material) -> Unit
 ) {

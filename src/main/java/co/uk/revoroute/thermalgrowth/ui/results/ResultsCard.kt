@@ -13,10 +13,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.uk.revoroute.thermalgrowth.model.CalculationResult
+import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
 
 @Composable
 fun ResultCard(
     result: CalculationResult,
+    settings: AppSettingsStore,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -41,7 +43,7 @@ fun ResultCard(
 
             // Offset value
             Text(
-                text = String.format("%.5f mm", result.expansionAmount),
+                text = settings.displayLength(result.expansionAmount),
                 fontSize = 32.sp,
                 fontFamily = FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -61,7 +63,7 @@ fun ResultCard(
 
             // Corrected size value
             Text(
-                text = String.format("%.5f mm", result.correctedSize),
+                text = settings.displayLength(result.correctedSize),
                 fontSize = 32.sp,
                 fontFamily = FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurface,
