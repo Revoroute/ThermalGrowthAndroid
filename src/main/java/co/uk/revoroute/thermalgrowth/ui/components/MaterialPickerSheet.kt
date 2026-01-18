@@ -34,11 +34,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 // iOS category order
 private val iosCategoryOrder = listOf(
     "Aluminium Alloys",
-    "Steels",
-    "Stainless Steels",
-    "Non‑Ferrous Metals",
+    "Carbides",
+    "Carbon & Graphite",
+    "Ceramics & Glass",
+    "Non-Ferrous Metals",
     "Polymers",
-    "Specialty Materials"
+    "Stainless Steels",
+    "Steels"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

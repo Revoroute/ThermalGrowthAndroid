@@ -30,7 +30,7 @@
   { "category": "Ceramics & Glass", "name": "Borosilicate Glass", "alpha": 3.3 },
   { "category": "Ceramics & Glass", "name": "Fused Silica", "alpha": 0.5 },
 
-  { "category": "Ceramics & Carbides", "name": "Tungsten Carbide", "alpha": 4.9 },
+  { "category": "Carbides", "name": "Tungsten Carbide", "alpha": 4.9 },
 
   { "category": "Carbon & Graphite", "name": "Graphite — Polycrystalline (General/Average)", "alpha": 4.5 },
   { "category": "Carbon & Graphite", "name": "Graphite — Parallel / In-plane", "alpha": 1.5 },
