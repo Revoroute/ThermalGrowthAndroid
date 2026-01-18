@@ -1,18 +1,19 @@
 [
-  { "category": "Aluminium Alloys", "name": "Aluminium 2014", "alpha": 23.6 },
-  { "category": "Aluminium Alloys", "name": "Aluminium 2024", "alpha": 23.8 },
+  { "category": "Aluminium Alloys", "name": "Aluminium 2014", "alpha": 23.0 },
+  { "category": "Aluminium Alloys", "name": "Aluminium 2024", "alpha": 22.8 },
   { "category": "Aluminium Alloys", "name": "Aluminium 6061", "alpha": 23.4 },
   { "category": "Aluminium Alloys", "name": "Aluminium 6082", "alpha": 23.4 },
   { "category": "Aluminium Alloys", "name": "Aluminium 7075", "alpha": 23.2 },
 
-  { "category": "Non‑Ferrous Metals", "name": "Beryllium Copper", "alpha": 17.8 },
-  { "category": "Non‑Ferrous Metals", "name": "Brass CW505L", "alpha": 19.9 },
-  { "category": "Non‑Ferrous Metals", "name": "Copper ETP", "alpha": 16.8 },
-  { "category": "Non‑Ferrous Metals", "name": "Inconel 718", "alpha": 11.5 },
-  { "category": "Non‑Ferrous Metals", "name": "Magnesium AZ91A", "alpha": 26.0 },
-  { "category": "Non‑Ferrous Metals", "name": "Monel 400", "alpha": 14.0 },
-  { "category": "Non‑Ferrous Metals", "name": "Nickel 200", "alpha": 13.3 },
-  { "category": "Non‑Ferrous Metals", "name": "Phosphor Bronze", "alpha": 17.8 },
+  { "category": "Non-Ferrous Metals", "name": "Beryllium Copper", "alpha": 17.8 },
+  { "category": "Non-Ferrous Metals", "name": "Brass CW505L", "alpha": 19.9 },
+  { "category": "Non-Ferrous Metals", "name": "Copper ETP", "alpha": 16.8 },
+  { "category": "Non-Ferrous Metals", "name": "Inconel 718", "alpha": 13.0 },
+  { "category": "Non-Ferrous Metals", "name": "Magnesium AZ91A", "alpha": 26.0 },
+  { "category": "Non-Ferrous Metals", "name": "Monel 400", "alpha": 14.0 },
+  { "category": "Non-Ferrous Metals", "name": "Nickel 200", "alpha": 13.3 },
+  { "category": "Non-Ferrous Metals", "name": "Phosphor Bronze", "alpha": 17.8 },
+  { "category": "Non-Ferrous Metals", "name": "Titanium 6Al-4V", "alpha": 8.6 },
 
   { "category": "Polymers", "name": "ABS", "alpha": 90.0 },
   { "category": "Polymers", "name": "Acetal Copolymer (POM-C)", "alpha": 30.0 },
@@ -25,9 +26,15 @@
   { "category": "Polymers", "name": "PEEK GF30 (30% Glass-Filled)", "alpha": 6.7 },
   { "category": "Polymers", "name": "PTFE (Teflon)", "alpha": 143.0 },
 
-  { "category": "Specialty Materials", "name": "Invar 36", "alpha": 1.1 },
-  { "category": "Specialty Materials", "name": "Titanium 6Al-4V", "alpha": 8.6 },
-  { "category": "Specialty Materials", "name": "Tungsten Carbide", "alpha": 4.9 },
+  { "category": "Ceramics & Glass", "name": "Soda-lime Glass", "alpha": 9.0 },
+  { "category": "Ceramics & Glass", "name": "Borosilicate Glass", "alpha": 3.3 },
+  { "category": "Ceramics & Glass", "name": "Fused Silica", "alpha": 0.5 },
+
+  { "category": "Ceramics & Carbides", "name": "Tungsten Carbide", "alpha": 4.9 },
+
+  { "category": "Carbon & Graphite", "name": "Graphite — Polycrystalline (General/Average)", "alpha": 4.5 },
+  { "category": "Carbon & Graphite", "name": "Graphite — Parallel / In-plane", "alpha": 1.5 },
+  { "category": "Carbon & Graphite", "name": "Graphite — Perpendicular / Through-thickness", "alpha": 4.0 },
 
   { "category": "Stainless Steels", "name": "Stainless 17-4 PH", "alpha": 11.0 },
   { "category": "Stainless Steels", "name": "Stainless 303", "alpha": 17.3 },
@@ -40,5 +47,6 @@
   { "category": "Steels", "name": "Steel A2", "alpha": 11.0 },
   { "category": "Steels", "name": "Steel D2", "alpha": 10.5 },
   { "category": "Steels", "name": "Steel P20", "alpha": 12.0 },
-  { "category": "Steels", "name": "Tool Steel H13", "alpha": 20.7 }
+  { "category": "Steels", "name": "Invar 36", "alpha": 1.1 },
+  { "category": "Steels", "name": "Tool Steel H13", "alpha": 11.5 }
 ]
