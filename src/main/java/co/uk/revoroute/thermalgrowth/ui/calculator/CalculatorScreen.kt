@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import co.uk.revoroute.thermalgrowth.ui.components.TempPickerSheet
 import co.uk.revoroute.thermalgrowth.ui.components.AdBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("UNUSED_VALUE")
 @Composable
 fun CalculatorScreen(
     viewModel: CalculatorState,
@@ -94,13 +96,20 @@ fun CalculatorScreen(
             )
         },
         bottomBar = {
-            AdBanner(
-                adUnitId = "ca-app-pub-3557221706331893/4654583309",
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
-            )
-        }
+                    .navigationBarsPadding()
+            ) {
+                AdBanner(
+                    adUnitId = "ca-app-pub-3557221706331893/4654583309",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                )
+            }
+        },
+        contentWindowInsets = WindowInsets.safeDrawing
     ) { padding ->
 
         Column(

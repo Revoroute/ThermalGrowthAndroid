@@ -18,30 +18,20 @@ import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material3.Scaffold
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-
-// iOS category order
-private val iosCategoryOrder = listOf(
-    "Aluminium Alloys",
-    "Carbides",
-    "Carbon & Graphite",
-    "Ceramics & Glass",
-    "Non-Ferrous Metals",
-    "Polymers",
-    "Stainless Steels",
-    "Steels"
-)
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.foundation.layout.Spacer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,10 +45,21 @@ fun MaterialPickerSheet(
 
     var selected by remember(selectedMaterial) { mutableStateOf(selectedMaterial) }
 
-    // Group materials by category in iOS order
-    val grouped = iosCategoryOrder.associateWith { category ->
-        materials.filter { it.category == category }
-    }.filterValues { it.isNotEmpty() }
+    var query by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+
+    val filtered = remember(materials, query) {
+        val q = query.trim()
+        if (q.isEmpty()) materials
+        else materials.filter { it.name.contains(q, ignoreCase = true) }
+    }
+
+    val grouped = remember(filtered) {
+        filtered
+            .groupBy { it.category }
+            .toSortedMap() // alphabetical category order
+            .mapValues { (_, items) -> items.sortedBy { it.name } }
+    }
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -69,49 +70,46 @@ fun MaterialPickerSheet(
         onDismissRequest = onDismiss,
         tonalElevation = 3.dp
     ) {
-        Scaffold(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 500.dp),
-            contentWindowInsets = WindowInsets(0),
-            bottomBar = {
-                Button(
-                    onClick = {
-                        selected?.let { onSelect(it) }
-                        onDismiss()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Done", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                }
-            }
-        ) { innerPadding ->
-
-            LazyColumn(
+                .heightIn(max = 600.dp)
+                .padding(horizontal = 16.dp)
+        ) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                singleLine = true,
+                placeholder = { Text("Search materials") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(innerPadding)
+                    .padding(top = 8.dp, bottom = 12.dp)
+            )
+
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth()
             ) {
                 grouped.forEach { (category, materialList) ->
-
                     item {
                         Text(
-                            text = category.uppercase(),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            text = category,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 16.dp, bottom = 6.dp)
+                                .padding(top = 12.dp, bottom = 6.dp)
                         )
                     }
 
                     items(materialList) { material ->
-
                         val isSelected = selected?.name == material.name
 
                         Row(
@@ -119,22 +117,25 @@ fun MaterialPickerSheet(
                                 .fillMaxWidth()
                                 .clickable {
                                     selected = material
+                                    onSelect(material)
+                                    onDismiss()
                                 }
-                                .padding(horizontal = 20.dp, vertical = 14.dp),
-                            horizontalArrangement = Arrangement.Center
+                                .padding(horizontal = 4.dp, vertical = 12.dp)
                         ) {
                             Text(
                                 text = material.name,
                                 modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Start,
                                 fontSize = 17.sp,
-                                color = if (isSelected)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.onSurface
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
+                }
+
+                // Spacer replacing the old Done button area
+                item {
+                    Spacer(modifier = Modifier.height(72.dp))
                 }
             }
         }

@@ -1,6 +1,7 @@
 package co.uk.revoroute.thermalgrowth
 
 import android.os.Bundle
+import androidx.core.view.WindowCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
@@ -23,6 +24,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Android 15+ edge-to-edge compliance
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
 

@@ -6,15 +6,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,14 +27,21 @@ import co.uk.revoroute.thermalgrowth.model.Material
 import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorState
 import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
 
-import kotlin.math.round
-
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.platform.LocalContext
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
+import java.util.Locale
+
 import androidx.compose.foundation.border
+
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +58,9 @@ fun InfoScreen(
         .groupBy { it.category }
         .toSortedMap()
 
+    var sheetMaterial by remember { mutableStateOf<Material?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -58,7 +68,7 @@ fun InfoScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -88,40 +98,38 @@ fun InfoScreen(
                         "Lᵣ = Lₜ × [1 + α × (T − R)]\n\n" +
                         "Where Lᵣ is the corrected length at the reference temperature R (set in Settings), " +
                         "Lₜ is the measured length, α is the material’s thermal expansion coefficient, " +
-                        "and T is the measurement temperature.",
+                        "and T is the measurement temperature.\n\n" +
+                        "CTE values shown in this app are representative averages near 20 °C. Actual expansion can vary by alloy, heat treatment, supplier, temperature range, fibre orientation (for composites), and moisture content (for polymers). Use results as a practical guide, not an absolute guarantee.",
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "",
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = if (unitSystem == AppSettingsStore.UnitSystem.METRIC)
+                            "CTE (×10⁻⁶ / °C)"
+                        else
+                            "CTE (×10⁻⁶ / °F)",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             groupedMaterials.forEach { (category, items) ->
-
-                // For Aluminium Alloys, show the CTE units row above the header
-                if (category == "Aluminium Alloys") {
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 12.dp, bottom = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "",
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = if (unitSystem == AppSettingsStore.UnitSystem.METRIC)
-                                    "CTE (×10⁻⁶ / °C)"
-                                else
-                                    "CTE (×10⁻⁶ / °F)",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                }
 
                 item {
                     Text(
@@ -137,13 +145,17 @@ fun InfoScreen(
                 items(items) { material ->
                     MaterialInfoRow(
                         material = material,
-                        unitSystem = unitSystem
+                        unitSystem = unitSystem,
+                        isTappable = !material.desc.isNullOrBlank(),
+                        onTap = {
+                            sheetMaterial = material
+                        }
                     )
                 }
 
                 // Divider between material groups
                 item {
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier
                             .padding(vertical = 12.dp),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
@@ -176,7 +188,7 @@ fun InfoScreen(
 
                             val intent = Intent(
                                 Intent.ACTION_SENDTO,
-                                Uri.parse("mailto:appsupport@revoroute.co.uk?subject=$subject&body=$body")
+                                "mailto:appsupport@revoroute.co.uk?subject=$subject&body=$body".toUri()
                             )
                             context.startActivity(intent)
                         },
@@ -197,8 +209,40 @@ fun InfoScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
 
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+
+    // Material description sheet
+    sheetMaterial?.let { material ->
+        ModalBottomSheet(
+            onDismissRequest = { sheetMaterial = null },
+            sheetState = sheetState,
+            tonalElevation = 3.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    text = material.name,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = material.desc.orEmpty(),
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
@@ -208,7 +252,9 @@ fun InfoScreen(
 @Composable
 private fun MaterialInfoRow(
     material: Material,
-    unitSystem: AppSettingsStore.UnitSystem
+    unitSystem: AppSettingsStore.UnitSystem,
+    isTappable: Boolean,
+    onTap: () -> Unit
 ) {
     val displayedAlpha = if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) {
         material.alpha / 1.8
@@ -218,7 +264,10 @@ private fun MaterialInfoRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .then(
+                if (isTappable) Modifier.clickable { onTap() } else Modifier
+            )
+            .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -231,7 +280,7 @@ private fun MaterialInfoRow(
         )
 
         Text(
-            text = String.format("%.1f", displayedAlpha),
+            text = String.format(Locale.getDefault(), "%.1f", displayedAlpha),
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.primary
