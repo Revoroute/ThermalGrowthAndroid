@@ -83,12 +83,20 @@ fun CalculatorScreen(
 
         val minDisplay = if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) -459.4 else -273.0
         val maxDisplay = if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) 4532.0 else 2500.0
-        if (signedDisplay !in minDisplay..maxDisplay) return
+
+        // Clamp to supported range (matches iOS “spring” behaviour)
+        val clampedDisplay = signedDisplay.coerceIn(minDisplay, maxDisplay)
+
+        // If we had to clamp, update the visible text so the user sees it “spring” to the limit
+        if (clampedDisplay != signedDisplay) {
+            isTempNegative = clampedDisplay < 0
+            tempMagnitudeText = formatTrim(kotlin.math.abs(clampedDisplay), 2)
+        }
 
         val tempC = if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) {
-            (signedDisplay - 32.0) * 5.0 / 9.0
+            (clampedDisplay - 32.0) * 5.0 / 9.0
         } else {
-            signedDisplay
+            clampedDisplay
         }
 
         // Store with higher precision to avoid imperial round-trip artefacts (e.g. 20°F -> 19.99°F)

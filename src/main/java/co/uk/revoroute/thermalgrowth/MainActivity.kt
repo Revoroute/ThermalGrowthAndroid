@@ -19,6 +19,7 @@ import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
 import co.uk.revoroute.thermalgrowth.app.AppSettingsStoreFactory
 import co.uk.revoroute.thermalgrowth.ui.calculator.CalculatorStateFactory
 import co.uk.revoroute.thermalgrowth.ui.theme.ThermalGrowthTheme
+import com.google.android.gms.ads.MobileAds
 
 class MainActivity : ComponentActivity() {
 
@@ -27,6 +28,9 @@ class MainActivity : ComponentActivity() {
 
         // Android 15+ edge-to-edge compliance
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // Init AdMob once (do NOT init inside composables)
+        MobileAds.initialize(this) {}
 
         setContent {
 
