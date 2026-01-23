@@ -21,8 +21,6 @@ import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Star
 import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
 
-import co.uk.revoroute.thermalgrowth.ui.components.TempPickerSheet
-
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -253,21 +251,6 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 fontSize = 14.sp
-            )
-        }
-
-        // Show TempPickerSheet if requested
-        if (showReferenceTempPicker) {
-            TempPickerSheet(
-                startTemp = referenceTempC,
-                unitSystem = unitSystem,
-                onSelect = { temp ->
-                    settings.setReferenceTempC(temp)
-                    showReferenceTempPicker = false
-                },
-                onDismiss = {
-                    showReferenceTempPicker = false
-                }
             )
         }
     }

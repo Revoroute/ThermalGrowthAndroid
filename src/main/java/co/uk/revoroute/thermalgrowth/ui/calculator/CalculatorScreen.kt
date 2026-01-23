@@ -10,10 +10,10 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -23,11 +23,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import co.uk.revoroute.thermalgrowth.app.AppSettingsStore
 import co.uk.revoroute.thermalgrowth.ui.results.ResultCard
 import co.uk.revoroute.thermalgrowth.ui.components.MaterialPickerSheet
-import co.uk.revoroute.thermalgrowth.ui.components.TempPickerSheet
 import co.uk.revoroute.thermalgrowth.ui.components.AdBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("UNUSED_VALUE")
 @Composable
 fun CalculatorScreen(
     viewModel: CalculatorState,
@@ -41,24 +39,61 @@ fun CalculatorScreen(
     val calculationResult by viewModel.calculationResult.collectAsState()
 
     val unitSystem by settings.unitSystem.collectAsState()
-    val referenceTempC by settings.referenceTempC.collectAsState()
-
-    // Display helper for measured temperature, shows in selected unit but keeps state in Celsius
-    val displayMeasuredTemp = remember(measuredTemp, unitSystem) {
-        val tempC = measuredTemp.toIntOrNull()
-        if (tempC == null) {
-            ""
-        } else if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) {
-            "${(tempC * 9 / 5) + 32}°F"
-        } else {
-            "$tempC°C"
-        }
-    }
 
     val focusManager = LocalFocusManager.current
 
     var showMaterialSheet by remember { mutableStateOf(false) }
-    var showTempSheet by remember { mutableStateOf(false) }
+
+    var isTempFocused by remember { mutableStateOf(false) }
+
+    // Temperature input (typed). Stored in the VM as Celsius, displayed/entered in the selected unit system.
+    var isTempNegative by remember { mutableStateOf(false) }
+    var tempMagnitudeText by remember { mutableStateOf("") }
+
+    fun formatTrim(value: Double, maxDecimals: Int): String {
+        val s = String.format(java.util.Locale.US, "%1$.${maxDecimals}f", value)
+        return s.trimEnd('0').trimEnd('.')
+    }
+
+    // Keep the input fields in sync when measuredTemp or unit system changes (e.g., on load or settings change)
+    LaunchedEffect(measuredTemp, unitSystem, isTempFocused) {
+        if (isTempFocused) return@LaunchedEffect
+
+        val tempC = measuredTemp.toDoubleOrNull()
+        if (tempC == null) {
+            isTempNegative = false
+            tempMagnitudeText = ""
+        } else {
+            val display = if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) (tempC * 9.0 / 5.0) + 32.0 else tempC
+            isTempNegative = display < 0
+            val mag = kotlin.math.abs(display)
+            // display up to 2dp, trimmed
+            tempMagnitudeText = formatTrim(mag, 2)
+        }
+    }
+
+    fun commitTempToViewModel() {
+        if (tempMagnitudeText.isBlank()) {
+            viewModel.onMeasuredTempChanged("")
+            return
+        }
+        val mag = tempMagnitudeText.toDoubleOrNull() ?: return
+
+        val signedDisplay = if (isTempNegative) -mag else mag
+
+        val minDisplay = if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) -459.4 else -273.0
+        val maxDisplay = if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) 4532.0 else 2500.0
+        if (signedDisplay !in minDisplay..maxDisplay) return
+
+        val tempC = if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) {
+            (signedDisplay - 32.0) * 5.0 / 9.0
+        } else {
+            signedDisplay
+        }
+
+        // Store with higher precision to avoid imperial round-trip artefacts (e.g. 20°F -> 19.99°F)
+        viewModel.onMeasuredTempChanged(formatTrim(tempC, 6))
+    }
 
     Scaffold(
         topBar = {
@@ -184,35 +219,78 @@ fun CalculatorScreen(
                 }
             }
 
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showTempSheet = true }
-                    .padding(vertical = 4.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Temperature (typed)
+            OutlinedTextField(
+                value = tempMagnitudeText,
+                onValueChange = { newValue ->
+                    // allow digits and a single dot
+                    val filtered = newValue.filter { it.isDigit() || it == '.' }
+                    // prevent more than one dot
+                    val normalized = if (filtered.count { it == '.' } > 1) {
+                        val firstDot = filtered.indexOf('.')
+                        val head = filtered.take(firstDot + 1)
+                        val tail = filtered.drop(firstDot + 1).replace(".", "")
+                        head + tail
+                    } else filtered
+
+                    tempMagnitudeText = normalized
+                    commitTempToViewModel()
+                },
+                placeholder = {
+                    Text(
+                        text = "Enter Temperature",
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                leadingIcon = {
+                    Box(
+                        modifier = Modifier.width(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        TextButton(
+                            onClick = {
+                                isTempNegative = !isTempNegative
+                                commitTempToViewModel()
+                            }
+                        ) {
+                            Text(
+                                text = if (isTempNegative) "−" else "+",
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                },
+                trailingIcon = {
+                    Box(
+                        modifier = Modifier.width(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            text = settings.displayTemperatureLabel(),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = displayMeasuredTemp.ifBlank { "Select" },
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center
+                            text = if (unitSystem == AppSettingsStore.UnitSystem.IMPERIAL) "°F" else "°C",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
-                }
-            }
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                ),
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 22.sp,
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { isTempFocused = it.isFocused }
+            )
 
             val result = calculationResult
             if (result != null) {
@@ -242,18 +320,6 @@ fun CalculatorScreen(
                 viewModel.onMaterialSelected(material)
                 showMaterialSheet = false
             }
-        )
-    }
-
-    if (showTempSheet) {
-        TempPickerSheet(
-            startTemp = measuredTemp.toIntOrNull() ?: referenceTempC,
-            unitSystem = unitSystem,
-            onSelect = { temp ->
-                viewModel.onMeasuredTempChanged(temp.toString())
-                showTempSheet = false
-            },
-            onDismiss = { showTempSheet = false }
         )
     }
 }
